@@ -37,7 +37,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder: Process',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => '0.2.7',
+			'version' => '0.2.8',
 			'href' => 'http:// processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -430,6 +430,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$this->_('CSS ID'),
 			$this->_('CSS Class'),
 			$this->_('New Tab'),
+			$this->_('Target'),
 		));
 
 		$n = $modules->get('InputfieldName');
@@ -452,12 +453,17 @@ class ProcessMenuBuilder extends Process implements Module {
 		$itemCustomNewTab = "<input type='checkbox' name='new_newtab[]' value='0' class='newtab'>";
 		$itemCustomNewTabHidden = "<input type='hidden' name='new_newtab_hidden[]' value='0' class='newtabhidden'>";// force send a value for new tabs
 
+		$nt = $modules->get('InputfieldName');
+		$nt->attr('name', 'new_item_custom_target[]');
+		$nt->attr('class', 'new_custom');
+
 		$t->row(array(
 			$n->render(),
 			$u->render(),
 			$n2->render(),
 			$n3->render(),
 			$itemCustomNewTab . $itemCustomNewTabHidden,
+			$nt->render(),
 			'<a href="#" class="remove_row"><i class="fa fa-trash"></i></a>',
 		));
 
@@ -552,6 +558,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$this->_('CSS ID'),
 			$this->_('CSS Class'),
 			$this->_('New Tab'),
+			$this->_('Target'),
 			$this->_('Type'),// custom or PW page
 
 		));
@@ -580,6 +587,8 @@ class ProcessMenuBuilder extends Process implements Module {
 				// does this menu item link open in a new window or not (i.e. target='_blank') - for custom menu items only
 				$itemNewTab = isset($menuItem['newtab']) ? $this->_('Yes') : $this->_('No');
 
+				$itemTarget = isset($menuItem['target']) ? $menuItem['target'] : '';
+
 				$itemCSSID = isset($menuItem['css_itemid']) ? $menuItem['css_itemid'] :'';
 				$itemCSSClass = isset($menuItem['css_itemclass']) ? $menuItem['css_itemclass'] : '';
 
@@ -590,6 +599,7 @@ class ProcessMenuBuilder extends Process implements Module {
 					$itemCSSID,
 					$itemCSSClass,
 					$itemNewTab,
+					$itemTarget,
 					$itemType)
 				);
 
@@ -773,7 +783,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$r = new InputfieldRadios();
 			$r->attr('id+name', 'menu_item_disable_items');
 			$r->label =  $this->_('Use enable/disable menu items feature');
-			$r->notes = $this->_('Allows you to set some menu items as disabled. If an item is disabled, the item together will all of its descendants will be set as disabled after you save the menu settings. Disabled items will not be output when the menu is viewed in the frontend.');
+			$r->notes = $this->_('Allows you to set some menu items as disabled. If an item is disabled, the item together with all of its descendants will be set as disabled after you save the menu settings. Disabled items will not be output when the menu is viewed in the frontend.');
 
 			$radioOptions = array (
 				1 => $this->_('Yes'),
@@ -927,7 +937,7 @@ class ProcessMenuBuilder extends Process implements Module {
 					- css_itemclass: this menu items's CSS Class (optional)
 					- pages_id: for PW pages items = $page->id; for custom menu items = 0 (note: this is different from id!)
 					- optional include children feature
-					- opitional disable menu items feature
+					- optional disable menu items feature
 
 			 */
 
@@ -959,6 +969,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				$this->cssItemClass = isset($item['css_itemclass']) ? $item['css_itemclass'] : '';
 				$this->itemPagesID = isset($item['pages_id']) ? $item['pages_id'] : 0;// only PW pages will have a pages_id > 0 (equal to their PW page->id)
 				$this->newTab = isset($item['newtab']) ? $item['newtab'] : 0;
+				$this->target = isset($item['target']) ? $item['target'] : '';// bd($this->target); // 210x bd() for 14 menu items
 				$this->itemIncludeChildren = isset($item['include_children']) ? $item['include_children'] : '';
 				$this->itemMenuMaxLevel = isset($item['m_max_level']) ? $item['m_max_level'] : '';
 				$this->disabledItem = isset($item['disabled_item']) ? $item['disabled_item'] : '';
@@ -1332,6 +1343,8 @@ class ProcessMenuBuilder extends Process implements Module {
 		if($this->disableItems == 1) $out .= $this->buildMenuItemDisabledMarkup();
 		######################### custom menu item new tab markup #########################
 		if(0 == $this->itemPagesID) $out .= $this->buildMenuItemNewTabMarkup();
+		######################### custom menu item target markup #########################
+		$out .= $this->buildMenuItemTargetMarkup();
 		######################### item hidden inputs markup #########################
 		$out .= $this->buildMenuItemHiddenInputs();
 
@@ -1534,7 +1547,24 @@ class ProcessMenuBuilder extends Process implements Module {
 	}
 
 	/**
-	 * Builds hiden inputs for tracking menu items settings.
+	 * Builds input for specifying menu item target attribute.
+	 *
+	 * Used in a menu item's settings.
+	 *
+	 * @access private
+	 * @return string $out Markup of input.
+	 *
+	 */
+	private function buildMenuItemTargetMarkup() {
+		$id = $this->itemID; 
+		$value = isset($this->menuItems[$this->itemID]['target']) ? $this->menuItems[$this->itemID]['target'] : '';
+		$out = '<label for="target' . $id . '">' . $this->_('Target') . '</label>
+				<input type="text" name="target[' . $id . ']" value="' . $value . '" class="menu_settings" id="target' . $id . '"/>';
+		return $out;
+	}
+
+	/**
+	 * Builds hidden inputs for tracking menu items settings.
 	 *
 	 * @access private
 	 * @return string $out Markup of hidden inputs.
@@ -2425,6 +2455,8 @@ class ProcessMenuBuilder extends Process implements Module {
 				$itemCSSClass = $sanitizer->text($post->css_itemclass[$itemID]);// sanitizer->text to accept multiple classes
 				$itemNewTab = isset($post->newtab[$itemID]) ? 1 : '';// only save for custom menu items with target='_blank'
 
+				$itemTarget = isset($post->target[$itemID]) ? $sanitizer->name($post->target[$itemID]) : '';// save for any custom/page(s)
+
 				// if current user can edit include children values + change include children setting
 				$itemIncludeChildren = '';
 				if( $this->includeChildren && isset($post->include_children[$itemID]) ) {
@@ -2451,6 +2483,7 @@ class ProcessMenuBuilder extends Process implements Module {
 					'include_children' => $itemIncludeChildren,
 					'm_max_level' => $itemMMaxLevel,
 					'disabled_item' => $itemDisabled,
+					'target' => $itemTarget,
 				);
 
 				// add disabled item to array to check if to apply same status to descendants
@@ -2553,6 +2586,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$itemCSSClass = $sanitizer->name($post->new_css_itemclass[$i]);
 			//$itemNewTab = (!isset($post->new_newtab[$i])) ? '' : 1;// using checkbox unreliable; use hidden input instead (below)
 			$itemNewTab = (int) $post->new_newtab_hidden[$i] ? 1 : '';// hidden input to resolve above
+			$itemTarget = isset($post->new_item_custom_target[$i]) ? $post->new_item_custom_target[$i] : '';
 
 			// add custom (external) menu items to our menu
 			$menuItems[$menuItemID] = array(
@@ -2563,7 +2597,10 @@ class ProcessMenuBuilder extends Process implements Module {
 				'css_itemclass' => $itemCSSClass,
 				'pages_id' => '',
 				'newtab' => $itemNewTab,
+				'target' => $itemTarget,
 			);
+			// Auto-disable new items:
+			if ($this->disableItems) $menuItems[$menuItemID]['disabled_item'] = 1;
 
 			$menuItemID++;
 
@@ -2637,6 +2674,8 @@ class ProcessMenuBuilder extends Process implements Module {
 				'm_max_level' => $itemMMaxLevel,
 				// 'b_max_level' => $itemBMaxLevel,// @todo - not setting individually for now
 			);
+			// Auto-disable new items:
+			if ($this->disableItems) $menuItems[$menuItemID]['disabled_item'] = 1;
 
 			$menuItemID++;
 
@@ -2688,6 +2727,8 @@ class ProcessMenuBuilder extends Process implements Module {
 					'pages_id' => $item->id,// the PW page ID
 					// 'newtab' => ''// NOT necessary for PW pages
 				);
+				// Auto-disable new items:
+				if ($this->disableItems) $menuItems[$menuItemID]['disabled_item'] = 1;
 
 				$menuItemID++;
 

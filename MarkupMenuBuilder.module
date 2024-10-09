@@ -33,7 +33,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => '0.2.7',
+			'version' => '0.2.8',
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -275,6 +275,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 			// NEW TAB
 			$m->newtab = isset($item['newtab']) ? 1 : '';
+			// TARGET
+			$m->target = isset($item['target']) ? $item['target'] : '';
 
 			// CSS
 			$m->cssID = isset($item['css_itemid']) ? $item['css_itemid'] : '';
@@ -614,7 +616,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 		foreach ($menu as $m) {
 
 			// set properties
-			$newtab = $m->newtab ? " target='_blank'" : '';
+			$newtab = $m->newtab && empty($m->target) ? " target='_blank'" : '';
+			$target = $m->target ? " target='".$m->target."'" : '';
+			// if (!empty($target)) $newtab = ''; // Override newtab target attribute
 
 			// if this menu item is a parent; create the sub-items/child-menu-items
 			if ($m->parentID == $parent) {
@@ -663,8 +667,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$class = strlen($classes) ? ' class="' . $classes . '"' : '';
 
 				// if $iTag is empty, apply css id and classes to <a> instead
-				if (!$iTag) $out .= "\n\t<a{$itemCSSID}{$class}{$newtab} href='{$m->url}'>{$m->title}</a>";
-				else $out .= "\n\t<{$iTag}{$itemCSSID}{$class}>\n\t\t<a{$newtab} href='{$m->url}'>{$m->title}</a>";
+				if (!$iTag) $out .= "\n\t<a{$itemCSSID}{$class}{$newtab}{$target} href='{$m->url}'>{$m->title}</a>";
+				else $out .= "\n\t<{$iTag}{$itemCSSID}{$class}>\n\t\t<a{$newtab}{$target} href='{$m->url}'>{$m->title}</a>";
 
 				// build nested/sub-elements
 				$out .= str_replace("\n", "\n\t\t", $this->buildMenu($m->id));
@@ -717,6 +721,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 			// set properties
 			$newtab = $m->newtab ? " target='_blank'" : '';
+			$target = $m->target ? " target='".$m->target."'" : '';
 
 			// if this menu item is a parent; create the sub-items/child-menu-items
 			if ($m->parent_id == $parent) { // @note: here and throughout, property names == original array index!
@@ -758,8 +763,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$class = strlen($classes) ? ' class="' . $classes . '"' : '';
 
 				// if $iTag is empty, apply css id and classes to <a> instead
-				if (!$iTag) $out .= "\n\t<a{$itemCSSID}{$class}{$newtab} href='{$m->url}'>{$m->title}</a>";
-				else $out .= "\n\t<{$iTag}{$itemCSSID}{$class}>\n\t\t<a{$newtab} href='{$m->url}'>{$m->title}</a>";
+				if (!$iTag) $out .= "\n\t<a{$itemCSSID}{$class}{$newtab}{$target} href='{$m->url}'>{$m->title}</a>";
+				else $out .= "\n\t<{$iTag}{$itemCSSID}{$class}>\n\t\t<a{$newtab}{$target} href='{$m->url}'>{$m->title}</a>";
 
 				// build nested/sub-elements
 				$out .= str_replace("\n", "\n\t\t", $this->buildMenuFromCache($id));
@@ -940,6 +945,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 					$url = $item->url;
 					$newtab = '';
+					$target = '';
 				} else {
 
 					// grab the menu item in the WireArray with the id=$item
@@ -947,14 +953,15 @@ class MarkupMenuBuilder extends WireData implements Module {
 					$title = $m->title;
 					$url = $m->url;
 					$newtab = $m->newtab ? "target='_blank'" : '';
+					$target = $m->target ? "target='".$m->target."'" : '';
 				}
 
 				// ancestor items
 				if ($total - $i != 1) {
 					$divider = " {$o->divider} "; // note the spaces before and after!
 					// if $iTag is empty, default to <a> instead
-					if (!$iTag) $out .= "<a {$newtab} href='{$url}'>{$title}</a>{$divider}";
-					else $out .= "<$iTag><a {$newtab} href='{$url}'>{$title}</a>{$divider}</$iTag>";
+					if (!$iTag) $out .= "<a {$newtab}{$target} href='{$url}'>{$title}</a>{$divider}";
+					else $out .= "<$iTag><a {$newtab}{$target} href='{$url}'>{$title}</a>{$divider}</$iTag>";
 				}
 
 				// the last breadcrumb item, i.e., the current page
@@ -1413,6 +1420,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 					'title' => $m->title, // default_title: 0=show saved mb titles;1=show actual/current pw titles
 					'url' => $m->url, // menu items URL
 					'newtab' => $m->newtab, // open link in new tab?
+					'target' => $m->target, // open link in new tab?
 					'css_itemid' => $m->cssID, // the items own CSS ID
 					'css_itemclass' => $m->cssClass, // the items own CSS class(es)
 					'include_children' => $m->includeChildren, // include this menu items natural children
@@ -2201,6 +2209,7 @@ class Menu extends WireData {
 		$this->set('title', '');
 		$this->set('url', '');
 		$this->set('newtab', '');
+		$this->set('target', '');
 		$this->set('parentID', ''); // mb menu item parent [not pw!]
 		$this->set('pagesID', ''); // for pw pages
 		$this->set('cssID', '');
