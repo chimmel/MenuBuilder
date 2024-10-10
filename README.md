@@ -78,6 +78,10 @@ $defaultOptions = array(
 	'm_max_level' => 1,// how deep to fetch 'include_children'
 	'current_class_level' => 1,// how high up the ancestral tree to apply 'current_class'
 	'default_class' => '',// a CSS class to apply to all menu items
+    // inner a tags:
+    'a_toplevel_class' => '',
+    'a_children_class' => '',
+    'a_parent_class' => '',
 
 );
 ````
