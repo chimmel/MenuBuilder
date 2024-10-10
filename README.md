@@ -78,6 +78,10 @@ $defaultOptions = array(
 	'm_max_level' => 1,// how deep to fetch 'include_children'
 	'current_class_level' => 1,// how high up the ancestral tree to apply 'current_class'
 	'default_class' => '',// a CSS class to apply to all menu items
+    // inner a tags:
+    'a_toplevel_class' => '',
+    'a_children_class' => '',
+    'a_parent_class' => '',
 
 );
 ````
@@ -1025,6 +1029,9 @@ Uninstall like any other ProcessWire module. Note that **All your menus will be 
 GPL2
 
 ## Changelog
+
+### Version 0.2.81
+1. Add options a_toplevel_class, a_children_class, a_parent_class.
 
 ### Version 0.2.8
 1. If disable_items menu setting is enabled: automatically disable newly added menu items until positioned in the menu, so as to allow for positioning post-save/addition in a published menu in use, prior to the item being added to its output, e.g., if menu is already in use on the frontend. Once saved/added/disabled, and then positioned, 'Disable' can be unchecked, save, and proper placement attained with no disruption.
