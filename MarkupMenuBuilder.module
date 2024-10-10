@@ -33,7 +33,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => '0.2.8',
+			'version' => '0.2.81',
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -662,13 +662,21 @@ class MarkupMenuBuilder extends WireData implements Module {
 				// apply current item class to current page + ancestors if specified for both native and included menu items
 				$itemCurrent =     $m->isCurrent == 1 ? $o->currentClass . ' ' : '';
 
+				// a tag:
+				$aTopLevelClass = $o['aTopLevelClass'] ? $o['aTopLevelClass'].' ' : '';
+				$aChildrenClass = $o['aChildrenClass'] ? $o['aChildrenClass'].' ' : '';
+				$aParentClass = $o['aParentClass'] ? $o['aParentClass'].' ' : '';
+				$aTagClass = $parent == 0 ? $aTopLevelClass : $aChildrenClass;
+				if ($m->isParent) $aTagClass .= $aParentClass;
+				$aTagClass = trim($aTagClass);
+
 				$classes = $itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst;
 				$classes = trim(preg_replace('/\s+/', ' ', $classes));
 				$class = strlen($classes) ? ' class="' . $classes . '"' : '';
 
 				// if $iTag is empty, apply css id and classes to <a> instead
 				if (!$iTag) $out .= "\n\t<a{$itemCSSID}{$class}{$newtab}{$target} href='{$m->url}'>{$m->title}</a>";
-				else $out .= "\n\t<{$iTag}{$itemCSSID}{$class}>\n\t\t<a{$newtab}{$target} href='{$m->url}'>{$m->title}</a>";
+				else $out .= "\n\t<{$iTag}{$itemCSSID}{$class}>\n\t\t<a{$newtab}{$target} class=\"{$aTagClass}\" href=\"{$m->url}\">{$m->title}</a>";
 
 				// build nested/sub-elements
 				$out .= str_replace("\n", "\n\t\t", $this->buildMenu($m->id));
@@ -2139,6 +2147,9 @@ class MenuOptions extends WireData {
 			current_class_level// NOT for breadcrumbs - 0=unlimited (+ include ancestors of current page that are not menu items);1=current item only;2=current+parent;3=current+parent+grandparent
 			current_css_id// only for breadcrumbs
 			default_class// a default css class to be applied to all menu items
+			$this->set('aTopLevelClass', isset($options['a_toplevel_class']) ? $options['a_toplevel_class'] : ''); // a tags
+			$this->set('aChildrenClass', isset($options['a_children_class']) ? $options['a_children_class'] : ''); // a tags
+			$this->set('aParentClass', isset($options['a_parent_class']) ? $options['a_parent_class'] : ''); // a tags
 			divider// only for breadcrumbs
 			prepend home page at the as topmost item even if it isn't part of the breadcrumb
 			prepend_home// only for breadcrumbs => 0=no;1=yes
@@ -2173,6 +2184,9 @@ class MenuOptions extends WireData {
 		$this->set('currentClassLevel', isset($options['current_class_level']) ? $options['current_class_level'] : 1);
 		$this->set('currentCSSID', isset($options['current_css_id']) ? $options['current_css_id'] : '');
 		$this->set('defaultClass', isset($options['default_class']) ? $options['default_class'] : '');
+		$this->set('aTopLevelClass', isset($options['a_toplevel_class']) ? $options['a_toplevel_class'] : '');
+		$this->set('aChildrenClass', isset($options['a_children_class']) ? $options['a_children_class'] : '');
+		$this->set('aParentClass', isset($options['a_parent_class']) ? $options['a_parent_class'] : '');
 		$this->set('divider', isset($options['divider']) ? $options['divider'] : '&raquo;');
 		$this->set('prependHome', isset($options['prepend_home']) ? $options['prepend_home'] : 0);
 		$this->set('defaultTitle', isset($options['default_title']) ? $options['default_title'] : 0);

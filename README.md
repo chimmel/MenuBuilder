@@ -1026,6 +1026,9 @@ GPL2
 
 ## Changelog
 
+### Version 0.2.81
+1. Add options a_toplevel_class, a_children_class, a_parent_class.
+
 ### Version 0.2.8
 1. If disable_items menu setting is enabled: automatically disable newly added menu items until positioned in the menu, so as to allow for positioning post-save/addition in a published menu in use, prior to the item being added to its output, e.g., if menu is already in use on the frontend. Once saved/added/disabled, and then positioned, 'Disable' can be unchecked, save, and proper placement attained with no disruption.
 2. Add text input for target attribute that overrides 'New Tab', and is applicable on any menu item (custom/page).
