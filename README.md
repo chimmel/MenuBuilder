@@ -1,6 +1,8 @@
 # Menu Builder
 This Module allows you to easily create custom menus/navigation lists in the ProcessWire Admin Panel using drag and drop. In the backend, it uses the [nestedSortable](https://github.com/mjsarfatti/nestedSortable) jQueryUI plugin by Manuele J Sarfatti.
 
+_(Alterations v0.2.8 - 0.2.82 by chimmel)_
+
 
 ## Features
 * Visual menu builder
