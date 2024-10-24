@@ -33,7 +33,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => '0.2.81',
+			'version' => '0.2.82',
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -75,6 +75,32 @@ class MarkupMenuBuilder extends WireData implements Module {
 	 */
 	public function init() {
 		// required
+	}
+
+	/**
+	 * Get nested array of given menu identity's menu_items
+	 * 
+	 * @param int|string $menuID
+	 * @return array $nested
+	 * 
+	 */
+	public function nestedArray(int|string $menuID) {
+		$m = wire('pages')->get('template=menus, name|id|title='.$menuID);
+		if (!$m->id) return false;
+	
+		// Get flat items array:
+		$json = $m->menu_items;
+		$array = json_decode($json, true);
+		// Init nested array:
+		$nested = [];
+	
+		// Populate nested array:
+		foreach ($array as $k => $v) {
+			if (array_key_exists('parent_id', $v)) $nested[$v['parent_id']][$k] = $v;
+			else $nested[$k] = $v;
+		}
+	
+		return $nested;
 	}
 
 	/**

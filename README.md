@@ -1030,6 +1030,9 @@ GPL2
 
 ## Changelog
 
+### Version 0.2.82
+1. Add nestedArray method to MarkupMenuBuilder.
+
 ### Version 0.2.81
 1. Add options a_toplevel_class, a_children_class, a_parent_class.
 
